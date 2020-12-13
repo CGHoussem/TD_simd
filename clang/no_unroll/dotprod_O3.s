@@ -13,20 +13,20 @@ dotprod:                                # @dotprod
 	movl	%edx, %eax
 	andl	$3, %eax
 	cmpq	$3, %rcx
-	jae	.LBB0_8
+	jae	.LBB0_4
 # %bb.3:
 	xorpd	%xmm0, %xmm0
 	xorl	%ecx, %ecx
-	jmp	.LBB0_4
+	jmp	.LBB0_6
 .LBB0_1:
 	xorps	%xmm0, %xmm0
 	retq
-.LBB0_8:
+.LBB0_4:
 	subq	%rax, %rdx
 	xorpd	%xmm0, %xmm0
 	xorl	%ecx, %ecx
 	.p2align	4, 0x90
-.LBB0_9:                                # =>This Inner Loop Header: Depth=1
+.LBB0_5:                                # =>This Inner Loop Header: Depth=1
 	movsd	(%rdi,%rcx,8), %xmm1    # xmm1 = mem[0],zero
 	movsd	8(%rdi,%rcx,8), %xmm2   # xmm2 = mem[0],zero
 	mulsd	(%rsi,%rcx,8), %xmm1
@@ -41,23 +41,23 @@ dotprod:                                # @dotprod
 	addsd	%xmm3, %xmm0
 	addq	$4, %rcx
 	cmpq	%rcx, %rdx
-	jne	.LBB0_9
-.LBB0_4:
+	jne	.LBB0_5
+.LBB0_6:
 	testq	%rax, %rax
-	je	.LBB0_7
-# %bb.5:
+	je	.LBB0_9
+# %bb.7:
 	leaq	(%rsi,%rcx,8), %rdx
 	leaq	(%rdi,%rcx,8), %rcx
 	xorl	%esi, %esi
 	.p2align	4, 0x90
-.LBB0_6:                                # =>This Inner Loop Header: Depth=1
+.LBB0_8:                                # =>This Inner Loop Header: Depth=1
 	movsd	(%rcx,%rsi,8), %xmm1    # xmm1 = mem[0],zero
 	mulsd	(%rdx,%rsi,8), %xmm1
 	addsd	%xmm1, %xmm0
 	addq	$1, %rsi
 	cmpq	%rsi, %rax
-	jne	.LBB0_6
-.LBB0_7:
+	jne	.LBB0_8
+.LBB0_9:
 	retq
 .Lfunc_end0:
 	.size	dotprod, .Lfunc_end0-dotprod

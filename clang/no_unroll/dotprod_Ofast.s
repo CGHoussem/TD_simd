@@ -9,8 +9,8 @@ dotprod:                                # @dotprod
 	testq	%rdx, %rdx
 	je	.LBB0_1
 # %bb.2:
-	cmpq	$3, %rdx
-	ja	.LBB0_4
+	cmpq	$4, %rdx
+	jae	.LBB0_4
 # %bb.3:
 	xorpd	%xmm0, %xmm0
 	xorl	%eax, %eax
