@@ -7,254 +7,264 @@ dotprod:
 .LFB0:
 	.cfi_startproc
 	endbr64
-	movq	%rdx, %r11
-	andl	$1, %r11d
-	je	.L8
+	movq	%rdx, %r10
+	andl	$1, %r10d
+	vxorpd	%xmm0, %xmm0, %xmm0
+	je	.L2
 	vmovsd	(%rdi), %xmm0
-	movl	$16, %r9d
 	vmulsd	(%rsi), %xmm0, %xmm0
 .L2:
-	cmpq	%r11, %rdx
-	jbe	.L74
-	leaq	-1(%rdx), %r9
-	subq	%r11, %r9
+	cmpq	%r10, %rdx
+	jbe	.L96
+	leaq	-1(%rdx), %rcx
+	subq	%r10, %rcx
 	cmpq	$-1, %rdx
-	je	.L46
-	cmpq	$7, %r9
-	jbe	.L46
+	je	.L9
+	cmpq	$1, %rcx
+	jbe	.L9
 	pushq	%rbp
 	.cfi_def_cfa_offset 16
 	.cfi_offset 6, -16
-	leaq	0(,%r11,8), %rax
-	vmovupd	(%rsi,%rax), %ymm6
+	shrq	%rcx
+	leaq	0(,%r10,8), %rdx
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
 	pushq	%rbx
 	.cfi_offset 3, -24
-	vmovupd	(%rdi,%rax), %ymm7
-	shrq	$3, %r9
-	vunpcklpd	32(%rsi,%rax), %ymm6, %ymm1
-	vunpcklpd	32(%rdi,%rax), %ymm7, %ymm2
-	leaq	-1(%r9), %rbx
-	vpermpd	$216, %ymm1, %ymm1
-	vpermpd	$216, %ymm2, %ymm4
-	vxorpd	%xmm3, %xmm3, %xmm3
-	movl	$1, %r10d
-	leaq	(%rdi,%rax), %rcx
-	leaq	(%rsi,%rax), %r8
-	vfmadd132pd	%ymm4, %ymm3, %ymm1
-	andl	$3, %ebx
-	movl	$64, %eax
-	cmpq	%r9, %r10
-	jnb	.L69
-	testq	%rbx, %rbx
-	je	.L5
+	incq	%rcx
+	leaq	(%rdi,%rdx), %r8
+	movq	%rcx, %rbx
+	vmovupd	(%r8), %ymm7
+	shrq	%rbx
+	addq	%rsi, %rdx
+	vmovq	%xmm0, %xmm9
+	leaq	-1(%rbx), %r11
+	vfmadd231pd	(%rdx), %ymm7, %ymm9
+	andl	$7, %r11d
+	movl	$1, %r9d
+	movl	$32, %eax
 	cmpq	$1, %rbx
-	je	.L55
-	cmpq	$2, %rbx
-	jne	.L79
-.L56:
-	vmovupd	(%r8,%rax), %ymm13
-	vmovupd	(%rcx,%rax), %ymm6
-	vunpcklpd	32(%r8,%rax), %ymm13, %ymm14
-	vunpcklpd	32(%rcx,%rax), %ymm6, %ymm7
-	vpermpd	$216, %ymm14, %ymm15
-	vpermpd	$216, %ymm7, %ymm2
-	vfmadd231pd	%ymm2, %ymm15, %ymm1
-	incq	%r10
-	addq	$64, %rax
-.L55:
+	jbe	.L91
+	testq	%r11, %r11
+	je	.L5
+	cmpq	$1, %r11
+	je	.L68
+	cmpq	$2, %r11
+	je	.L69
+	cmpq	$3, %r11
+	je	.L70
+	cmpq	$4, %r11
+	je	.L71
+	cmpq	$5, %r11
+	je	.L72
+	cmpq	$6, %r11
+	je	.L73
+	vmovupd	32(%r8), %ymm2
+	movl	$2, %r9d
+	vfmadd231pd	32(%rdx), %ymm2, %ymm9
+	movl	$64, %eax
+.L73:
 	vmovupd	(%r8,%rax), %ymm4
-	vmovupd	(%rcx,%rax), %ymm5
-	vunpcklpd	32(%r8,%rax), %ymm4, %ymm3
-	vunpcklpd	32(%rcx,%rax), %ymm5, %ymm9
-	vpermpd	$216, %ymm3, %ymm8
-	vpermpd	$216, %ymm9, %ymm10
-	incq	%r10
-	vfmadd231pd	%ymm10, %ymm8, %ymm1
-	addq	$64, %rax
-	cmpq	%r9, %r10
-	jnb	.L69
-.L5:
-	vmovupd	(%r8,%rax), %ymm11
-	vmovupd	(%rcx,%rax), %ymm14
-	vunpcklpd	32(%r8,%rax), %ymm11, %ymm12
-	vunpcklpd	32(%rcx,%rax), %ymm14, %ymm15
-	vpermpd	$216, %ymm12, %ymm13
-	vpermpd	$216, %ymm15, %ymm6
-	vfmadd231pd	%ymm6, %ymm13, %ymm1
-	vmovupd	64(%r8,%rax), %ymm7
-	vmovupd	64(%rcx,%rax), %ymm4
-	vunpcklpd	96(%r8,%rax), %ymm7, %ymm2
-	vunpcklpd	96(%rcx,%rax), %ymm4, %ymm3
-	vpermpd	$216, %ymm2, %ymm8
-	vpermpd	$216, %ymm3, %ymm5
-	vfmadd132pd	%ymm5, %ymm1, %ymm8
-	vmovupd	128(%rcx,%rax), %ymm11
-	vmovupd	128(%r8,%rax), %ymm1
-	vunpcklpd	160(%rcx,%rax), %ymm11, %ymm12
-	vunpcklpd	160(%r8,%rax), %ymm1, %ymm9
-	vpermpd	$216, %ymm12, %ymm13
-	vpermpd	$216, %ymm9, %ymm10
-	vmovupd	192(%r8,%rax), %ymm14
-	vmovupd	192(%rcx,%rax), %ymm7
-	vfmadd231pd	%ymm13, %ymm10, %ymm8
-	vunpcklpd	224(%r8,%rax), %ymm14, %ymm15
-	vunpcklpd	224(%rcx,%rax), %ymm7, %ymm2
-	vpermpd	$216, %ymm15, %ymm6
-	vpermpd	$216, %ymm2, %ymm1
-	addq	$4, %r10
-	vfmadd132pd	%ymm6, %ymm8, %ymm1
-	addq	$256, %rax
-	cmpq	%r9, %r10
-	jb	.L5
+	incq	%r9
+	vfmadd231pd	(%rdx,%rax), %ymm4, %ymm9
+	addq	$32, %rax
+.L72:
+	vmovupd	(%r8,%rax), %ymm3
+	incq	%r9
+	vfmadd231pd	(%rdx,%rax), %ymm3, %ymm9
+	addq	$32, %rax
+.L71:
+	vmovupd	(%r8,%rax), %ymm1
+	incq	%r9
+	vfmadd231pd	(%rdx,%rax), %ymm1, %ymm9
+	addq	$32, %rax
+.L70:
+	vmovupd	(%r8,%rax), %ymm5
+	incq	%r9
+	vfmadd231pd	(%rdx,%rax), %ymm5, %ymm9
+	addq	$32, %rax
 .L69:
-	leaq	(%r11,%r9,8), %rcx
-	vextractf128	$0x1, %ymm1, %xmm8
-	vaddpd	%xmm1, %xmm8, %xmm4
-	vmovsd	(%rsi,%rcx,8), %xmm9
-	leaq	2(%rcx), %r8
-	vfmadd231sd	(%rdi,%rcx,8), %xmm9, %xmm0
-	vunpckhpd	%xmm4, %xmm4, %xmm3
-	vaddpd	%xmm4, %xmm3, %xmm5
-	vaddsd	%xmm5, %xmm0, %xmm0
-	cmpq	%r8, %rdx
-	jbe	.L72
-	vmovsd	(%rdi,%r8,8), %xmm10
-	vfmadd231sd	(%rsi,%r8,8), %xmm10, %xmm0
-	leaq	4(%rcx), %r8
-	cmpq	%r8, %rdx
-	jbe	.L72
-	vmovsd	(%rdi,%r8,8), %xmm11
-	vfmadd231sd	(%rsi,%r8,8), %xmm11, %xmm0
-	leaq	6(%rcx), %r8
-	cmpq	%r8, %rdx
-	jbe	.L72
-	vmovsd	(%rsi,%r8,8), %xmm12
-	vfmadd231sd	(%rdi,%r8,8), %xmm12, %xmm0
-	leaq	8(%rcx), %r8
+	vmovupd	(%r8,%rax), %ymm6
+	incq	%r9
+	vfmadd231pd	(%rdx,%rax), %ymm6, %ymm9
+	addq	$32, %rax
+.L68:
+	vmovupd	(%r8,%rax), %ymm8
+	incq	%r9
+	vfmadd231pd	(%rdx,%rax), %ymm8, %ymm9
+	addq	$32, %rax
+	cmpq	%r9, %rbx
+	jbe	.L91
+.L5:
+	vmovupd	(%r8,%rax), %ymm10
+	vmovupd	32(%r8,%rax), %ymm11
+	vfmadd231pd	(%rdx,%rax), %ymm10, %ymm9
+	vmovupd	64(%r8,%rax), %ymm12
+	vmovupd	96(%r8,%rax), %ymm13
+	vmovupd	128(%r8,%rax), %ymm14
+	vmovupd	160(%r8,%rax), %ymm15
+	vfmadd231pd	32(%rdx,%rax), %ymm11, %ymm9
+	vmovupd	192(%r8,%rax), %ymm0
+	vmovupd	224(%r8,%rax), %ymm7
+	addq	$8, %r9
+	vfmadd231pd	64(%rdx,%rax), %ymm12, %ymm9
+	vfmadd231pd	96(%rdx,%rax), %ymm13, %ymm9
+	vfmadd231pd	128(%rdx,%rax), %ymm14, %ymm9
+	vfmadd231pd	160(%rdx,%rax), %ymm15, %ymm9
+	vfmadd231pd	192(%rdx,%rax), %ymm0, %ymm9
+	vfmadd231pd	224(%rdx,%rax), %ymm7, %ymm9
+	addq	$256, %rax
+	cmpq	%r9, %rbx
+	ja	.L5
+.L91:
+	vextractf128	$0x1, %ymm9, %xmm3
+	movq	%rcx, %rbx
+	vunpckhpd	%xmm9, %xmm9, %xmm5
+	vunpckhpd	%xmm3, %xmm3, %xmm6
+	andq	$-2, %rbx
+	vaddsd	%xmm3, %xmm9, %xmm8
+	leaq	(%r10,%rbx,2), %rdx
+	vaddsd	%xmm6, %xmm5, %xmm9
+	cmpq	%rcx, %rbx
+	je	.L92
+	vmovsd	(%rsi,%rdx,8), %xmm10
+	vmovsd	8(%rsi,%rdx,8), %xmm11
+	vfmadd231sd	(%rdi,%rdx,8), %xmm10, %xmm8
+	vfmadd231sd	8(%rdi,%rdx,8), %xmm11, %xmm9
 	vzeroupper
-.L7:
-	leaq	8(,%r8,8), %rdx
-	vmovsd	(%rdi,%rdx), %xmm13
 	popq	%rbx
-	vfmadd231sd	(%rsi,%rdx), %xmm13, %xmm0
+	vaddsd	%xmm9, %xmm8, %xmm0
+	popq	%rbp
+	.cfi_remember_state
+	.cfi_def_cfa 7, 8
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L92:
+	.cfi_restore_state
+	vzeroupper
+	popq	%rbx
+	vaddsd	%xmm9, %xmm8, %xmm0
 	popq	%rbp
 	.cfi_def_cfa 7, 8
 	ret
 	.p2align 4,,10
 	.p2align 3
-.L8:
+.L9:
 	.cfi_restore 3
 	.cfi_restore 6
-	movl	$8, %r9d
-	vxorpd	%xmm0, %xmm0, %xmm0
-	jmp	.L2
-	.p2align 4,,10
-	.p2align 3
-.L72:
-	.cfi_def_cfa 6, 16
-	.cfi_offset 3, -24
-	.cfi_offset 6, -16
-	vzeroupper
-	jmp	.L7
-	.p2align 4,,10
-	.p2align 3
-.L79:
-	vmovupd	64(%r8), %ymm5
-	vmovupd	64(%rcx), %ymm10
-	vunpcklpd	96(%r8), %ymm5, %ymm8
-	vunpcklpd	96(%rcx), %ymm10, %ymm11
-	vpermpd	$216, %ymm8, %ymm9
-	vpermpd	$216, %ymm11, %ymm12
-	vfmadd231pd	%ymm12, %ymm9, %ymm1
-	movl	$2, %r10d
-	movl	$128, %eax
-	jmp	.L56
-	.p2align 4,,10
-	.p2align 3
-.L46:
-	.cfi_def_cfa 7, 8
-	.cfi_restore 3
-	.cfi_restore 6
-	movq	%r11, %r10
-	notq	%r10
+	movq	%r10, %r8
+	notq	%r8
+	vmovsd	(%rsi,%r10,8), %xmm12
+	vmovsd	8(%rsi,%r10,8), %xmm1
+	addq	%rdx, %r8
+	shrq	%r8
+	vxorpd	%xmm13, %xmm13, %xmm13
+	leaq	2(%r10), %r11
+	vfmadd231sd	(%rdi,%r10,8), %xmm12, %xmm0
+	vfmadd132sd	8(%rdi,%r10,8), %xmm13, %xmm1
+	andl	$7, %r8d
+	cmpq	%r11, %rdx
+	jbe	.L97
+	testq	%r8, %r8
+	je	.L4
+	cmpq	$1, %r8
+	je	.L62
+	cmpq	$2, %r8
+	je	.L63
+	cmpq	$3, %r8
+	je	.L64
+	cmpq	$4, %r8
+	je	.L65
+	cmpq	$5, %r8
+	je	.L66
+	cmpq	$6, %r8
+	je	.L67
 	vmovsd	(%rsi,%r11,8), %xmm14
-	addq	%rdx, %r10
-	shrq	%r10
-	leaq	2(%r11), %rax
+	vmovsd	8(%rsi,%r11,8), %xmm15
 	vfmadd231sd	(%rdi,%r11,8), %xmm14, %xmm0
-	andl	$7, %r10d
-	cmpq	%rax, %rdx
-	jbe	.L75
-	testq	%r10, %r10
-	je	.L11
-	cmpq	$1, %r10
-	je	.L49
-	cmpq	$2, %r10
-	je	.L50
-	cmpq	$3, %r10
-	je	.L51
-	cmpq	$4, %r10
-	je	.L52
-	cmpq	$5, %r10
-	je	.L53
-	cmpq	$6, %r10
-	je	.L54
-	vmovsd	(%rsi,%rax,8), %xmm15
-	vfmadd231sd	(%rdi,%rax,8), %xmm15, %xmm0
-	leaq	4(%r11), %rax
-.L54:
-	vmovsd	(%rsi,%rax,8), %xmm6
-	vfmadd231sd	(%rdi,%rax,8), %xmm6, %xmm0
-	addq	$2, %rax
-.L53:
-	vmovsd	(%rsi,%rax,8), %xmm7
-	vfmadd231sd	(%rdi,%rax,8), %xmm7, %xmm0
-	addq	$2, %rax
-.L52:
-	vmovsd	(%rsi,%rax,8), %xmm2
-	vfmadd231sd	(%rdi,%rax,8), %xmm2, %xmm0
-	addq	$2, %rax
-.L51:
-	vmovsd	(%rsi,%rax,8), %xmm1
-	vfmadd231sd	(%rdi,%rax,8), %xmm1, %xmm0
-	addq	$2, %rax
-.L50:
-	vmovsd	(%rsi,%rax,8), %xmm8
-	vfmadd231sd	(%rdi,%rax,8), %xmm8, %xmm0
-	addq	$2, %rax
-.L49:
-	vmovsd	(%rsi,%rax,8), %xmm4
-	vfmadd231sd	(%rdi,%rax,8), %xmm4, %xmm0
-	addq	$2, %rax
-	cmpq	%rax, %rdx
-	jbe	.L75
-.L11:
-	vmovsd	(%rsi,%rax,8), %xmm3
-	vmovsd	16(%rsi,%rax,8), %xmm5
-	vfmadd231sd	(%rdi,%rax,8), %xmm3, %xmm0
-	vmovsd	32(%rsi,%rax,8), %xmm9
-	vmovsd	48(%rsi,%rax,8), %xmm10
-	vmovsd	64(%rsi,%rax,8), %xmm11
-	vmovsd	80(%rsi,%rax,8), %xmm12
-	vfmadd231sd	16(%rdi,%rax,8), %xmm5, %xmm0
-	vmovsd	96(%rsi,%rax,8), %xmm13
-	vmovsd	112(%rsi,%rax,8), %xmm14
-	vfmadd231sd	32(%rdi,%rax,8), %xmm9, %xmm0
-	vfmadd231sd	48(%rdi,%rax,8), %xmm10, %xmm0
-	vfmadd231sd	64(%rdi,%rax,8), %xmm11, %xmm0
-	vfmadd231sd	80(%rdi,%rax,8), %xmm12, %xmm0
-	vfmadd231sd	96(%rdi,%rax,8), %xmm13, %xmm0
-	vfmadd231sd	112(%rdi,%rax,8), %xmm14, %xmm0
-	addq	$16, %rax
-	cmpq	%rax, %rdx
-	ja	.L11
-.L75:
-	leaq	8(,%rax,8), %r9
-.L74:
-	vmovsd	(%rdi,%r9), %xmm15
-	vfmadd231sd	(%rsi,%r9), %xmm15, %xmm0
+	vfmadd231sd	8(%rdi,%r11,8), %xmm15, %xmm1
+	leaq	4(%r10), %r11
+.L67:
+	vmovsd	(%rsi,%r11,8), %xmm7
+	vmovsd	8(%rsi,%r11,8), %xmm2
+	vfmadd231sd	(%rdi,%r11,8), %xmm7, %xmm0
+	vfmadd231sd	8(%rdi,%r11,8), %xmm2, %xmm1
+	addq	$2, %r11
+.L66:
+	vmovsd	(%rsi,%r11,8), %xmm5
+	vmovsd	8(%rsi,%r11,8), %xmm3
+	vfmadd231sd	(%rdi,%r11,8), %xmm5, %xmm0
+	vfmadd231sd	8(%rdi,%r11,8), %xmm3, %xmm1
+	addq	$2, %r11
+.L65:
+	vmovsd	(%rsi,%r11,8), %xmm4
+	vmovsd	8(%rsi,%r11,8), %xmm6
+	vfmadd231sd	(%rdi,%r11,8), %xmm4, %xmm0
+	vfmadd231sd	8(%rdi,%r11,8), %xmm6, %xmm1
+	addq	$2, %r11
+.L64:
+	vmovsd	(%rsi,%r11,8), %xmm8
+	vmovsd	8(%rsi,%r11,8), %xmm9
+	vfmadd231sd	(%rdi,%r11,8), %xmm8, %xmm0
+	vfmadd231sd	8(%rdi,%r11,8), %xmm9, %xmm1
+	addq	$2, %r11
+.L63:
+	vmovsd	(%rsi,%r11,8), %xmm10
+	vmovsd	8(%rsi,%r11,8), %xmm11
+	vfmadd231sd	(%rdi,%r11,8), %xmm10, %xmm0
+	vfmadd231sd	8(%rdi,%r11,8), %xmm11, %xmm1
+	addq	$2, %r11
+.L62:
+	vmovsd	(%rsi,%r11,8), %xmm12
+	vmovsd	8(%rsi,%r11,8), %xmm13
+	vfmadd231sd	(%rdi,%r11,8), %xmm12, %xmm0
+	vfmadd231sd	8(%rdi,%r11,8), %xmm13, %xmm1
+	addq	$2, %r11
+	cmpq	%r11, %rdx
+	jbe	.L97
+.L4:
+	vmovsd	(%rsi,%r11,8), %xmm14
+	vmovsd	8(%rsi,%r11,8), %xmm15
+	vfmadd231sd	(%rdi,%r11,8), %xmm14, %xmm0
+	vfmadd231sd	8(%rdi,%r11,8), %xmm15, %xmm1
+	vmovsd	16(%rsi,%r11,8), %xmm7
+	vmovsd	24(%rsi,%r11,8), %xmm2
+	vmovsd	32(%rsi,%r11,8), %xmm5
+	vfmadd231sd	16(%rdi,%r11,8), %xmm7, %xmm0
+	vfmadd231sd	24(%rdi,%r11,8), %xmm2, %xmm1
+	vmovsd	40(%rsi,%r11,8), %xmm3
+	vmovsd	48(%rsi,%r11,8), %xmm4
+	vmovsd	56(%rsi,%r11,8), %xmm6
+	vfmadd231sd	32(%rdi,%r11,8), %xmm5, %xmm0
+	vfmadd231sd	40(%rdi,%r11,8), %xmm3, %xmm1
+	vmovsd	64(%rsi,%r11,8), %xmm8
+	vmovsd	72(%rsi,%r11,8), %xmm9
+	vmovsd	80(%rsi,%r11,8), %xmm10
+	vfmadd231sd	48(%rdi,%r11,8), %xmm4, %xmm0
+	vfmadd231sd	56(%rdi,%r11,8), %xmm6, %xmm1
+	vmovsd	88(%rsi,%r11,8), %xmm11
+	vmovsd	96(%rsi,%r11,8), %xmm12
+	vmovsd	104(%rsi,%r11,8), %xmm13
+	vfmadd231sd	64(%rdi,%r11,8), %xmm8, %xmm0
+	vfmadd231sd	72(%rdi,%r11,8), %xmm9, %xmm1
+	vmovsd	112(%rsi,%r11,8), %xmm14
+	vmovsd	120(%rsi,%r11,8), %xmm15
+	vfmadd231sd	80(%rdi,%r11,8), %xmm10, %xmm0
+	vfmadd231sd	88(%rdi,%r11,8), %xmm11, %xmm1
+	vfmadd231sd	96(%rdi,%r11,8), %xmm12, %xmm0
+	vfmadd231sd	104(%rdi,%r11,8), %xmm13, %xmm1
+	vfmadd231sd	112(%rdi,%r11,8), %xmm14, %xmm0
+	vfmadd231sd	120(%rdi,%r11,8), %xmm15, %xmm1
+	addq	$16, %r11
+	cmpq	%r11, %rdx
+	ja	.L4
+.L97:
+	vaddsd	%xmm1, %xmm0, %xmm0
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L96:
 	ret
 	.cfi_endproc
 .LFE0:

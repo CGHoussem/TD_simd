@@ -10,32 +10,32 @@ dotprod:
 	movq	%rdx, %rax
 	andl	$1, %eax
 	je	.L5
-	movsd	(%rdi), %xmm0
-	mulsd	(%rsi), %xmm0
-	pxor	%xmm2, %xmm2
-	addsd	%xmm2, %xmm0
-	jmp	.L7
+	movsd	(%rdi), %xmm2
+	mulsd	(%rsi), %xmm2
+	pxor	%xmm0, %xmm0
+	addsd	%xmm0, %xmm2
+	jmp	.L8
 	.p2align 4,,10
 	.p2align 3
 .L4:
 	movsd	(%rdi,%rax,8), %xmm1
 	mulsd	(%rsi,%rax,8), %xmm1
-	addq	$2, %rax
-	addsd	%xmm1, %xmm0
-.L7:
-	cmpq	%rax, %rdx
-	ja	.L4
+	addsd	%xmm1, %xmm2
 	movsd	8(%rdi,%rax,8), %xmm1
 	mulsd	8(%rsi,%rax,8), %xmm1
-	addsd	%xmm2, %xmm1
+	addq	$2, %rax
 	addsd	%xmm1, %xmm0
+.L8:
+	cmpq	%rax, %rdx
+	ja	.L4
+	addsd	%xmm2, %xmm0
 	ret
 	.p2align 4,,10
 	.p2align 3
 .L5:
-	pxor	%xmm2, %xmm2
-	movapd	%xmm2, %xmm0
-	jmp	.L7
+	pxor	%xmm0, %xmm0
+	movapd	%xmm0, %xmm2
+	jmp	.L8
 	.cfi_endproc
 .LFE0:
 	.size	dotprod, .-dotprod

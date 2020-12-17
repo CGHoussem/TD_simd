@@ -9,8 +9,6 @@ O3_FLAGS=-O3
 OFAST_FLAGS=-Ofast
 KAMIKAZE_FLAGS=-march=native -mtune=native -Ofast -funroll-loops -finline-functions -ftree-vectorize
 
-#Extra
-
 #
 no_unroll: dotprod_O1.s dotprod_O2.s dotprod_O3.s dotprod_Ofast.s dotprod_kamikaze.s
 
@@ -19,7 +17,6 @@ unroll_2: dotprod_2_O1.s dotprod_2_O2.s dotprod_2_O3.s dotprod_2_Ofast.s dotprod
 unroll_4: dotprod_4_O1.s dotprod_4_O2.s dotprod_4_O3.s dotprod_4_Ofast.s dotprod_4_kamikaze.s
 
 # ---------------------------------------------------------
-
 
 dotprod_O1.s: dotprod.c
 	$(CC) -S $(O1_FLAGS) $< -o $(CC)/no_unroll/$@
@@ -84,7 +81,6 @@ dotprod_4_Ofast.s: dotprod_4.c
 dotprod_4_kamikaze.s: dotprod_4.c
 	$(CC) -S $(KAMIKAZE_FLAGS) $< -o $(CC)/unroll_4/$@
 	$(CC2) -S $(KAMIKAZE_FLAGS) $< -o $(CC2)/unroll_4/$@
-
 
 clean:
 	rm -Rf $(CC)/* $(CC2)/*

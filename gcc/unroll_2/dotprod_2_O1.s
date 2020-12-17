@@ -15,20 +15,24 @@ dotprod:
 	addsd	.LC0(%rip), %xmm0
 .L2:
 	cmpq	%rax, %rdx
-	jbe	.L3
+	jbe	.L6
+	pxor	%xmm2, %xmm2
 .L4:
 	movsd	(%rdi,%rax,8), %xmm1
 	mulsd	(%rsi,%rax,8), %xmm1
 	addsd	%xmm1, %xmm0
+	movsd	8(%rdi,%rax,8), %xmm1
+	mulsd	8(%rsi,%rax,8), %xmm1
+	addsd	%xmm1, %xmm2
 	addq	$2, %rax
 	cmpq	%rax, %rdx
 	ja	.L4
 .L3:
-	movsd	8(%rdi,%rax,8), %xmm1
-	mulsd	8(%rsi,%rax,8), %xmm1
-	addsd	.LC0(%rip), %xmm1
-	addsd	%xmm1, %xmm0
+	addsd	%xmm2, %xmm0
 	ret
+.L6:
+	pxor	%xmm2, %xmm2
+	jmp	.L3
 	.cfi_endproc
 .LFE0:
 	.size	dotprod, .-dotprod

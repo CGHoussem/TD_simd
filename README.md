@@ -23,8 +23,8 @@ dotprod:
 .LFB0:
 	.cfi_startproc
 	endbr64
-	testq	%rdx, %rdx              # Compare if n equals 0
-	je	.L4                         # Then jump to .L4
+	testq	%rdx, %rdx              # Test N
+	je	.L4                         # If equals to 0 goto .L4
 	movl	$0, %eax                # Copie 0 into a 32 bits register
 	pxor	%xmm1, %xmm1            # Initializes the double 'd' to 0
 .L3:                            # FOR LOOP
@@ -53,8 +53,8 @@ dotprod:
 .LFB0:
 	.cfi_startproc
 	endbr64
-	testq	%rdx, %rdx              # Compare if n equals 0
-	je	.L4                         # Jump to .L4
+	testq	%rdx, %rdx
+	je	.L4
 	xorl	%eax, %eax              # Initialize %eax therefore %rax to 0 by executing a xor operation
                                     # Meaning: Initializing i to 0 (i = 0)
 	pxor	%xmm1, %xmm1            # Initialize %xmm1 (the double d) to 0
@@ -83,7 +83,7 @@ dotprod:
 .LFB0:
 	.cfi_startproc
 	endbr64
-	testq	%rdx, %rdx              # Performing a bit-wise AND operation on the register %rdx (argument n) to itself.
+	testq	%rdx, %rdx
 	je	.L7                         # If %rdx (n) is 0 then jump to .L7
 	cmpq	$1, %rdx                # Comparing if n == 1
 	je	.L8                         # If n == 1 then jump to .L8
@@ -286,43 +286,80 @@ dotprod:                                # @dotprod
 .LBB0_9:
 	retq
 ```
-I've pasted the code to talk about the size of this _monster_, we have already more than 50 lines of assembly code, whether we have around 20 lines.
+I've copied the code above to comment about it's size. It has around 50 lines of generated instructions compared to the 20 lines for the _gcc_ version.
 It is always using single double scalar ASM instructions (movsd, mulsd, addsd).
 
 ### Observations for the other optimization options (-O3, -Ofast and 'kamikaze'):
 In *-O3*, *-Ofast* and *kamikaze*, we have evolved from single double precision to packed double precision which makes the use of vector operations. But, just like '__gcc__', there is only vector operations for mulplication and scalar operations for addition in *-O3*. On the other hand, in *-Ofast* there is the use of vector operations for both addition and multiplication.
 
->### Summary for the 'No Unroll' code (gcc vs clang)
->|          | SIMD Instructions (*gcc*)| SIMD Instructions (*clang*)|
->|----------|------------------------| -------------------------|
->| -O1      | Scalar           	 	 | Scalar           	 	|
->| -O2      | Scalar            	 | Scalar            	 	|
->| -O3      | Vector Multiplication	 | Vector Multiplication	|
->|			| + Scalar Addition		 | + Scalar Addition		|
->| -Ofast   | Vector Add and Mul	 | Vector Add and Mul	 	|
->| Kamikaze | Vector     	     	 | Vector     	     	 	|
+For the *kamikaze* options, we have got the same behaviour as the gcc's *kamikaze* version:
+- Using AVX vector registers (%ymm0 - %ymm15)
+So we have got a 100% vector assembly code with the exception of switching to scalar instructions only if vectorization is not possible.
 
-## Code that has been unroll twice
+>### Summary for the 'No Unroll' code (gcc vs clang)
+>|            | SIMD Instructions (*gcc*)| SIMD Instructions (*clang*)|
+>|------------|------------------------| -----------------------|
+>| *-O1*      | Scalar           	   | Scalar           	 	|
+>| *-O2*      | Scalar            	   | Scalar            	 	|
+>| *-O3*      | Vector Multiplication  | Vector Multiplication	|
+>|			  | + Scalar Addition	   | + Scalar Addition		|
+>| *-Ofast*   | Vector Add and Mul	   | Vector Add and Mul	 	|
+>| *Kamikaze* | Vector     	     	   | Vector     	     	|
+
+## Code that has been unrolled twice
 ### The C code of the function:
 ```c
 	double dotprod(double *a, double *b, unsigned long long n)
 	{
-	double d = 0.0;
-	double d_2 = 0.0;
-	unsigned long long i = 0;
-	if (n&1) 
-	{
-		d += a[i] * b[i];
-		i++;
-	}
-	for (; i < n; i+=2)
-		d += a[i] * b[i];
-		d_2 += a[i+1] * b[i+1];
+		double d = 0.0;
+		double d_2 = 0.0;
+		unsigned long long i = 0;
+		if (n&1) 
+		{
+			d += a[i] * b[i];
+			i++;
+		}
+		for (; i < n; i+=2) {
+			d += a[i] * b[i];
+			d_2 += a[i+1] * b[i+1];
+		}
 
-	return d + d_2;
+		return d + d_2;
 	}
 ```
-### The assembly equivalent codes:
+### The assembly code generated with the option -O1
 ```asm
-
+dotprod:
+.LFB0:
+	.cfi_startproc
+	endbr64
+	pxor	%xmm0, %xmm0
+	movq	%rdx, %rax
+	andl	$1, %eax
+	je	.L2
+	movsd	(%rdi), %xmm0
+	mulsd	(%rsi), %xmm0
+	addsd	.LC0(%rip), %xmm0
+.L2:
+	cmpq	%rax, %rdx
+	jbe	.L6
+	pxor	%xmm2, %xmm2
+.L4:
+	movsd	(%rdi,%rax,8), %xmm1
+	mulsd	(%rsi,%rax,8), %xmm1
+	addsd	%xmm1, %xmm0
+	movsd	8(%rdi,%rax,8), %xmm1
+	mulsd	8(%rsi,%rax,8), %xmm1
+	addsd	%xmm1, %xmm2
+	addq	$2, %rax
+	cmpq	%rax, %rdx
+	ja	.L4
+.L3:
+	addsd	%xmm2, %xmm0
+	ret
+.L6:
+	pxor	%xmm2, %xmm2
+	jmp	.L3
+	.cfi_endproc
 ```
+

@@ -6,40 +6,45 @@ dotprod:
 .LFB0:
 	.cfi_startproc
 	endbr64
-	pxor	%xmm1, %xmm1
+	pxor	%xmm2, %xmm2
 	movq	%rdx, %rax
 	andl	$1, %eax
 	je	.L2
-	movsd	(%rdi), %xmm1
-	mulsd	(%rsi), %xmm1
-	addsd	.LC0(%rip), %xmm1
+	movsd	(%rdi), %xmm2
+	mulsd	(%rsi), %xmm2
+	addsd	.LC0(%rip), %xmm2
 .L2:
 	cmpq	%rax, %rdx
-	jbe	.L3
+	jbe	.L6
+	pxor	%xmm3, %xmm3
+	movapd	%xmm3, %xmm4
+	movapd	%xmm3, %xmm0
 .L4:
-	movsd	(%rdi,%rax,8), %xmm0
-	mulsd	(%rsi,%rax,8), %xmm0
-	addsd	%xmm0, %xmm1
+	movsd	(%rdi,%rax,8), %xmm1
+	mulsd	(%rsi,%rax,8), %xmm1
+	addsd	%xmm1, %xmm2
+	movsd	8(%rdi,%rax,8), %xmm1
+	mulsd	8(%rsi,%rax,8), %xmm1
+	addsd	%xmm1, %xmm0
+	movsd	16(%rdi,%rax,8), %xmm1
+	mulsd	16(%rsi,%rax,8), %xmm1
+	addsd	%xmm1, %xmm4
+	movsd	24(%rdi,%rax,8), %xmm1
+	mulsd	24(%rsi,%rax,8), %xmm1
+	addsd	%xmm1, %xmm3
 	addq	$4, %rax
 	cmpq	%rax, %rdx
 	ja	.L4
 .L3:
-	addq	$1, %rax
-	leaq	0(,%rax,8), %rdx
-	movsd	(%rdi,%rax,8), %xmm0
-	mulsd	(%rsi,%rax,8), %xmm0
-	pxor	%xmm2, %xmm2
 	addsd	%xmm2, %xmm0
-	addsd	%xmm0, %xmm1
-	movsd	8(%rdi,%rdx), %xmm0
-	mulsd	8(%rsi,%rdx), %xmm0
-	addsd	%xmm2, %xmm0
-	addsd	%xmm0, %xmm1
-	movsd	16(%rdi,%rdx), %xmm0
-	mulsd	16(%rsi,%rdx), %xmm0
-	addsd	%xmm2, %xmm0
-	addsd	%xmm1, %xmm0
+	addsd	%xmm4, %xmm0
+	addsd	%xmm3, %xmm0
 	ret
+.L6:
+	pxor	%xmm3, %xmm3
+	movapd	%xmm3, %xmm4
+	movapd	%xmm3, %xmm0
+	jmp	.L3
 	.cfi_endproc
 .LFE0:
 	.size	dotprod, .-dotprod
