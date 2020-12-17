@@ -1,8 +1,5 @@
 # Devoir Maison (TD SIMD)
-## Useful Information (TO DELETE!!)
-The first 6 function arguments are passed in registers:
-    %rdi, %rsi, %rdx, %rcx, %r8 and %r9
-## No Unroll Code
+## 'No Unroll' Version
 ### The C code of the function:
 ```c
     double dotprod(double *a, double *b, unsigned long long n)
@@ -17,7 +14,7 @@ The first 6 function arguments are passed in registers:
     }
 ```
 ### The equivalent assembly compiled with 'gcc':
-Code assembleur compilé avec l'option d'optimisation '-O1':
+Assembly code compiled using the option '*-O1*':
 ```asm
 dotprod:
 .LFB0:
@@ -47,7 +44,7 @@ dotprod:
 	jmp	.L1                         # Jumps to .L1
 	.cfi_endproc
 ```
-Code assembleur compilé en 'gcc' avec l'option d'optimisation '-O2':
+Assembly code compiled using the option '*-O2*':
 ```asm
 dotprod:
 .LFB0:
@@ -77,7 +74,7 @@ dotprod:
 	ret                             # Return (exit)
 	.cfi_endproc
 ```
-Code assembleur compilé en 'gcc' avec l'option d'optimisation '-O3':
+Assembly code compiled using the option '*-O3*':
 ```asm
 dotprod:
 .LFB0:
@@ -130,23 +127,9 @@ dotprod:
 	jmp	.L3                         # Jump to .L3 (FOR LOOP)
 	.cfi_endproc
 ```
-Code assembleur compilé en 'gcc' avec l'option d'optimisation '-Ofast':
+Assembly code compiled using the option '*-Ofast*':
 ```asm
-dotprod:
-.LFB0:
-	.cfi_startproc
-	endbr64
-	testq	%rdx, %rdx
-	je	.L7
-	cmpq	$1, %rdx				# check if n == 1
-	je	.L8							# jump to .L8
-	movq	%rdx, %rcx
-	xorl	%eax, %eax
-	pxor	%xmm0, %xmm0
-	shrq	%rcx
-	salq	$4, %rcx
-	.p2align 4,,10
-	.p2align 3
+# ...
 .L4:
 	movupd	(%rdi,%rax), %xmm1
 	movupd	(%rsi,%rax), %xmm2
@@ -162,24 +145,14 @@ dotprod:
 	andl	$1, %edx
 	addpd	%xmm0, %xmm1			# vector addition
 	je	.L1
-.L3:								# Executed only if n = 1 which means our returned value is (0 + a[1] * b[1])
+.L3:								# Executed only if n equals to 1 => (0 + a[1] * b[1])
 	movsd	(%rsi,%rax,8), %xmm0	# %xmm0 = b[i]
 	mulsd	(%rdi,%rax,8), %xmm0	# %xmm0 *= a[i]
 	addsd	%xmm0, %xmm1			# %xmm1 += %xmm0
 .L1:
 	movapd	%xmm1, %xmm0			# move %xmm1 to %xmm0 (return value)
 	ret								# return (exit)
-	.p2align 4,,10
-	.p2align 3
-.L7:
-	pxor	%xmm1, %xmm1
-	movapd	%xmm1, %xmm0
-	ret
-.L8:
-	xorl	%eax, %eax			# %eax = 0
-	pxor	%xmm1, %xmm1		# %xmm1 = 0
-	jmp	.L3						# jump to .L3
-	.cfi_endproc
+# ...
 ```
 ### Observations:
 In this assembly code we represented the ***unsigned long long i*** by a 32 bits register (**eax**) but we are manipulating this "*variable*" with a 64 bits register (**rax**).
@@ -205,98 +178,17 @@ I didn't include the assembly code of the ___kamikaze___ version because it's a 
 In the ___kamikaze___ version, AVX (Advanced Vector eXtensions) has been put to use with the vectors ymm0 to ymm15.
 
 ### The equivalent assembly compiled with 'clang':
-Code assembleur compilé avec l'option d'optimisation '-O1':
-```asm
-dotprod:                                # @dotprod
-	.cfi_startproc
-# %bb.0:
-	xorpd	%xmm0, %xmm0
-	testq	%rdx, %rdx
-	je	.LBB0_3
-# %bb.1:
-	xorl	%eax, %eax
-	.p2align	4, 0x90
-.LBB0_2:                                # =>This Inner Loop Header: Depth=1
-	movsd	(%rdi,%rax,8), %xmm1    # xmm1 = mem[0],zero
-	mulsd	(%rsi,%rax,8), %xmm1
-	addsd	%xmm1, %xmm0
-	addq	$1, %rax
-	cmpq	%rax, %rdx
-	jne	.LBB0_2
-.LBB0_3:
-	retq
-```
-More or less the same observations for *gcc*.
-Code assembleur compilé avec l'option d'optimisation '-O2':
-```asm
-dotprod:                                # @dotprod
-	.cfi_startproc
-# %bb.0:
-	testq	%rdx, %rdx
-	je	.LBB0_1
-# %bb.2:
-	leaq	-1(%rdx), %rcx
-	movl	%edx, %eax
-	andl	$3, %eax
-	cmpq	$3, %rcx
-	jae	.LBB0_4
-# %bb.3:
-	xorpd	%xmm0, %xmm0
-	xorl	%ecx, %ecx
-	jmp	.LBB0_6
-.LBB0_1:
-	xorps	%xmm0, %xmm0
-	retq
-.LBB0_4:
-	subq	%rax, %rdx
-	xorpd	%xmm0, %xmm0
-	xorl	%ecx, %ecx
-	.p2align	4, 0x90
-.LBB0_5:                                # =>This Inner Loop Header: Depth=1
-	movsd	(%rdi,%rcx,8), %xmm1    # xmm1 = mem[0],zero
-	movsd	8(%rdi,%rcx,8), %xmm2   # xmm2 = mem[0],zero
-	mulsd	(%rsi,%rcx,8), %xmm1
-	mulsd	8(%rsi,%rcx,8), %xmm2
-	addsd	%xmm0, %xmm1
-	movsd	16(%rdi,%rcx,8), %xmm3  # xmm3 = mem[0],zero
-	mulsd	16(%rsi,%rcx,8), %xmm3
-	addsd	%xmm1, %xmm2
-	movsd	24(%rdi,%rcx,8), %xmm0  # xmm0 = mem[0],zero
-	mulsd	24(%rsi,%rcx,8), %xmm0
-	addsd	%xmm2, %xmm3
-	addsd	%xmm3, %xmm0
-	addq	$4, %rcx
-	cmpq	%rcx, %rdx
-	jne	.LBB0_5
-.LBB0_6:
-	testq	%rax, %rax
-	je	.LBB0_9
-# %bb.7:
-	leaq	(%rsi,%rcx,8), %rdx
-	leaq	(%rdi,%rcx,8), %rcx
-	xorl	%esi, %esi
-	.p2align	4, 0x90
-.LBB0_8:                                # =>This Inner Loop Header: Depth=1
-	movsd	(%rcx,%rsi,8), %xmm1    # xmm1 = mem[0],zero
-	mulsd	(%rdx,%rsi,8), %xmm1
-	addsd	%xmm1, %xmm0
-	addq	$1, %rsi
-	cmpq	%rsi, %rax
-	jne	.LBB0_8
-.LBB0_9:
-	retq
-```
-I've copied the code above to comment about it's size. It has around 50 lines of generated instructions compared to the 20 lines for the _gcc_ version.
-It is always using single double scalar ASM instructions (movsd, mulsd, addsd).
+#### Observations of the output of the -O1 AND -O2:
+The assembly code compiled with the option *-O1* has way more lines than the __gcc__ version but it is always using scaler double precision ASM operations (movsd, mulsd, addsd).
 
-### Observations for the other optimization options (-O3, -Ofast and 'kamikaze'):
-In *-O3*, *-Ofast* and *kamikaze*, we have evolved from single double precision to packed double precision which makes the use of vector operations. But, just like '__gcc__', there is only vector operations for mulplication and scalar operations for addition in *-O3*. On the other hand, in *-Ofast* there is the use of vector operations for both addition and multiplication.
+### Observations for the other options (-O3, -Ofast and 'kamikaze'):
+In *-O3*, *-Ofast* and *kamikaze*, we have evolved from using scalar double precision operations to packed double precision SIMD instructions which makes the use of vector operations. But, just like '__gcc__', there is only vector operations for mulplication and scalar operations for addition in *-O3*. On the other hand, in *-Ofast* there is the use of vector operations for both addition and multiplication.
 
-For the *kamikaze* options, we have got the same behaviour as the gcc's *kamikaze* version:
-- Using AVX vector registers (%ymm0 - %ymm15)
+For the *kamikaze* options, we have got the same behaviour as the __gcc__'s *kamikaze* version:
+- Using AVX vector registers (ymm0 - ymm15)
 So we have got a 100% vector assembly code with the exception of switching to scalar instructions only if vectorization is not possible.
 
->### Summary for the 'No Unroll' code (gcc vs clang)
+### Summary for the 'No Unroll' code (gcc vs clang)
 >|            | SIMD Instructions (*gcc*)| SIMD Instructions (*clang*)|
 >|------------|------------------------| -----------------------|
 >| *-O1*      | Scalar           	   | Scalar           	 	|
@@ -305,7 +197,7 @@ So we have got a 100% vector assembly code with the exception of switching to sc
 >|			  | + Scalar Addition	   | + Scalar Addition		|
 >| *-Ofast*   | Vector Add and Mul	   | Vector Add and Mul	 	|
 >| *Kamikaze* | Vector     	     	   | Vector     	     	|
-
+---
 ## Code that has been unrolled twice
 ### The C code of the function:
 ```c
@@ -327,39 +219,109 @@ So we have got a 100% vector assembly code with the exception of switching to sc
 		return d + d_2;
 	}
 ```
-### The assembly code generated with the option -O1
-```asm
-dotprod:
-.LFB0:
-	.cfi_startproc
-	endbr64
-	pxor	%xmm0, %xmm0
-	movq	%rdx, %rax
-	andl	$1, %eax
-	je	.L2
-	movsd	(%rdi), %xmm0
-	mulsd	(%rsi), %xmm0
-	addsd	.LC0(%rip), %xmm0
-.L2:
-	cmpq	%rax, %rdx
-	jbe	.L6
-	pxor	%xmm2, %xmm2
-.L4:
-	movsd	(%rdi,%rax,8), %xmm1
-	mulsd	(%rsi,%rax,8), %xmm1
-	addsd	%xmm1, %xmm0
-	movsd	8(%rdi,%rax,8), %xmm1
-	mulsd	8(%rsi,%rax,8), %xmm1
-	addsd	%xmm1, %xmm2
-	addq	$2, %rax
-	cmpq	%rax, %rdx
-	ja	.L4
-.L3:
-	addsd	%xmm2, %xmm0
-	ret
-.L6:
-	pxor	%xmm2, %xmm2
-	jmp	.L3
-	.cfi_endproc
+### Comments about the assembly code generated with 'gcc':
+- *-O1*  and *-O2*:
+	> PS: Representing __%xmm0__ as __ret__
+
+	```asm
+	.L4:
+		movsd	(%rdi,%rax,8), %xmm1	# %xmm1 = a[i]
+		mulsd	(%rsi,%rax,8), %xmm1	# %xmm1 *= b[i]
+		addsd	%xmm1, %xmm0			# ret += %xmm1
+		movsd	8(%rdi,%rax,8), %xmm1	# %xmm1 = a[i+1] *advanced by 8 -> the next bloc*
+		mulsd	8(%rsi,%rax,8), %xmm1	# %xmm1 *= b[i+1] *same for the %rsi regsiter*
+		addsd	%xmm1, %xmm2			# %xmm2 += %xmm1
+		addq	$2, %rax				# i += 2
+		cmpq	%rax, %rdx				# compare n to i
+		ja	.L4							# if n>i, loop back
+	.L3:
+		addsd	%xmm2, %xmm0			# ret += %xmm2
+		ret								# return ret (exit)
+	```
+
+	```asm
+	.L4:
+		movsd	(%rdi,%rax,8), %xmm1
+		mulsd	(%rsi,%rax,8), %xmm1
+		addsd	%xmm1, %xmm2
+		movsd	8(%rdi,%rax,8), %xmm1
+		mulsd	8(%rsi,%rax,8), %xmm1
+		addq	$2, %rax
+		addsd	%xmm1, %xmm0
+	.L8:
+		cmpq	%rax, %rdx		# compare n to i
+		ja	.L4					# if n>i, goto back to .L4 LOOP
+		addsd	%xmm2, %xmm0	# ret += %xmm2
+		ret						# return ret
+	```
+	*-O1* and *-O2* are the same. Both use scalar double precision operations for the additions, multiplications and movements.
+
+- *-O3* and *-Ofast*: In *-O3*, there is a use of packed double (vector) operations (reading 16 bits at a time ~2 blocs) and still using SEE vectors (xmm).
+*-Ofast* is a compact version of *-O3*.
+
+- *Kamikaze*: Use of scalar and vector registers.
+
+### Comments about the assembly code generated with 'clang':
+- *-O1*: Using only scalar double precision SIMD x86 instructions (__movsd__, __mulsd__, __addsd__)
+- *-O2*: Using packed double precision SIMD x86 instructions such as: __movupd__, __mulpd__ and __addpd__
+- *-O3*: Same assembly as *-O2*
+- *-Ofast*: Same assembly as *-O3* with slight change
+- *Kamikaze*: The size is significally smaller that the __gcc__'s version, __vmovupd__ (vector) and __vfmadd231pd__ (vector) operations have been used.
+
+### Summary for the 'Unroll Twice' code (gcc vs clang)
+>|            | SIMD Instructions (*gcc*)| SIMD Instructions (*clang*)|
+>|------------|------------------------| -----------------------|
+>| *-O1*      | Scalar           	   | Scalar           	 	|
+>| *-O2*      | Scalar            	   | Scalar            	 	|
+>| *-O3*      | Vector Multiplication  | Vector 				|
+>|			  | + Scalar Addition	   | 						|
+>| *-Ofast*   | Vector 				   | Vector 			 	|
+>| *Kamikaze* | Vector     	     	   | Vector     	     	|
+---
+## Code that has been unrolled 4 times
+### The C code of the function:
+```c
+	double dotprod(double *a, double *b, unsigned long long n)
+	{
+		double d = 0.0;
+		double d_2 = 0.0;
+		double d_3 = 0.0;
+		double d_4 = 0.0;
+		unsigned long long i = 0;
+		if (n&1) 
+		{
+			d += a[i] * b[i];
+			i++;
+		}
+		for (; i < n; i+=4) {
+			d += a[i] * b[i];
+			d_2 += a[i+1] * b[i+1];
+			d_3 += a[i+2] * b[i+2];
+			d_4 += a[i+3] * b[i+3];
+		}
+		return d + d_2 + d_3 + d_4;
+	}
 ```
+### Comments about the assembly code generated with 'gcc':
+- *-O1*: The use of only __scalar__ double precision SIMD x86 instructions.
+- *-O2*: The use of only __scalar__ double precision SIMD x86 instructions.
+- *-O3*: Mixed use of both __scalar__ and __packed__ double precision SIMD x86 instructions.
+- *-Ofast*: The use of only __scalar__ double precision SIMD x86 instructions.
+- *Kamikaze*: The use of only __scalar__ double precision SIMD x86 instructions.
+
+### Comments about the assembly code generated with 'clang':
+- *-O1*: The use of only __scalar__ double precision SIMD x86 instructions.
+- *-O2*: The use of only __packed__ double precision SIMD x86 instructions.
+- *-O3*: The use of only __packed__ double precision SIMD x86 instructions.
+- *-Ofast*: The use of only __packed__ double precision SIMD x86 instructions.
+- *Kamikaze*: The use of only __packed__ double precision SIMD x86 instructions.
+
+### Summary for the 'Unroll x4' code (gcc vs clang)
+>|            | SIMD Instructions (*gcc*)| SIMD Instructions (*clang*)|
+>|------------|--------------------------|------------------------|
+>| *-O1*      | Scalar           	   	 | Scalar           	  |
+>| *-O2*      | Scalar            	   	 | Vector            	  |
+>| *-O3*      | Vector + Scalar  	   	 | Vector 				  |
+>| *-Ofast*   | Scalar 				   	 | Vector 			 	  |
+>| *Kamikaze* | Scalar     	     	   	 | Vector     	     	  |
 
