@@ -52,26 +52,26 @@ dotprod:
 	endbr64
 	testq	%rdx, %rdx
 	je	.L4
-	xorl	%eax, %eax              # Initialize %eax therefore %rax to 0 by executing a xor operation
-                                    # Meaning: Initializing i to 0 (i = 0)
-	pxor	%xmm1, %xmm1            # Initialize %xmm1 (the double d) to 0
+	xorl	%eax, %eax		# Initialize %eax therefore %rax to 0 by executing a xor operation
+					# Meaning: Initializing i to 0 (i = 0)
+	pxor	%xmm1, %xmm1		# Initialize %xmm1 (the double d) to 0
 	.p2align 4,,10
 	.p2align 3
 .L3:
-	movsd	(%rdi,%rax,8), %xmm0    # %xmm0 = a[i]
-	mulsd	(%rsi,%rax,8), %xmm0    # %xmm0 = %xmm0 * b[i]
-	addq	$1, %rax                # i + = 1
-	addsd	%xmm0, %xmm1            # d = d + %xmm0
-	cmpq	%rax, %rdx              # Compare if i equals to n
-	jne	.L3                         # If not, jump to .L3
-	movapd	%xmm1, %xmm0            # Moves 32 bits of %xmm1 to %xmm0 (our return value)
-	ret                             # Return (exit)
+	movsd	(%rdi,%rax,8), %xmm0	# %xmm0 = a[i]
+	mulsd	(%rsi,%rax,8), %xmm0	# %xmm0 = %xmm0 * b[i]
+	addq	$1, %rax		# i + = 1
+	addsd	%xmm0, %xmm1		# d = d + %xmm0
+	cmpq	%rax, %rdx		# Compare if i equals to n
+	jne	.L3			# If not, jump to .L3
+	movapd	%xmm1, %xmm0		# Moves 32 bits of %xmm1 to %xmm0 (our return value)
+	ret				# Return (exit)
 	.p2align 4,,10
 	.p2align 3
 .L4:
-	pxor	%xmm1, %xmm1            # Initializes the double 'd' to 0
-	movapd	%xmm1, %xmm0            # Moves (copies) %xmm1 to %xmm0 (our return value)
-	ret                             # Return (exit)
+	pxor	%xmm1, %xmm1		# Initializes the double 'd' to 0
+	movapd	%xmm1, %xmm0		# Moves (copies) %xmm1 to %xmm0 (our return value)
+	ret				# Return (exit)
 	.cfi_endproc
 ```
 Assembly code compiled using the option '*-O3*':
@@ -81,50 +81,50 @@ dotprod:
 	.cfi_startproc
 	endbr64
 	testq	%rdx, %rdx
-	je	.L7                         # If %rdx (n) is 0 then jump to .L7
-	cmpq	$1, %rdx                # Comparing if n == 1
-	je	.L8                         # If n == 1 then jump to .L8
-	movq	%rdx, %rcx              # Moving the variable n to a 4th function argument %rcx
-	xorl	%eax, %eax              # Initialize i to 0
-	pxor	%xmm0, %xmm0            # Initialize the double d to 0
-	shrq	%rcx                    # Shifting %rcx to the right by 1
-	salq	$4, %rcx                # Shifting %rcx to the right by 4 
+	je	.L7			# If %rdx (n) is 0 then jump to .L7
+	cmpq	$1, %rdx		# Comparing if n == 1
+	je	.L8			# If n == 1 then jump to .L8
+	movq	%rdx, %rcx		# Moving the variable n to a 4th function argument %rcx
+	xorl	%eax, %eax		# Initialize i to 0
+	pxor	%xmm0, %xmm0		# Initialize the double d to 0
+	shrq	%rcx			# Shifting %rcx to the right by 1
+	salq	$4, %rcx		# Shifting %rcx to the right by 4 
 	.p2align 4,,10
 	.p2align 3
 .L4:
 	movupd	(%rdi,%rax), %xmm1		# %xmm1 = a[i]
 	movupd	(%rsi,%rax), %xmm3		# %xmm3 = b[i]
-	addq	$16, %rax				# i += 16
+	addq	$16, %rax			# i += 16
 	mulpd	%xmm3, %xmm1			# %xmm1 = %xmm1 * %xmm3 (a[i] * b[i])
 	movapd	%xmm1, %xmm2			# %xmm2 = %xmm1
 	unpckhpd	%xmm1, %xmm1		# Unpack %xmm1
 	addsd	%xmm0, %xmm2			# %xmm2 += d
 	movapd	%xmm1, %xmm0			# d = %xmm1
 	addsd	%xmm2, %xmm0			# d += %xmm2
-	cmpq	%rax, %rcx				# Compare i with 4th function argument (n)
-	jne	.L4							# If we didn't get to the end of the loop jump to .L4 (back to loop)
-	movq	%rdx, %rax				# i = n
-	andq	$-2, %rax				# i = i & -2 | if 'i' is an odd number then subtract 1
-	andl	$1, %edx				# Didn't understand the use of this instruction (%edx is unused!)
-	je	.L11						# Jump to .L11
+	cmpq	%rax, %rcx			# Compare i with 4th function argument (n)
+	jne	.L4				# If we didn't get to the end of the loop jump to .L4 (back to loop)
+	movq	%rdx, %rax			# i = n
+	andq	$-2, %rax			# i = i & -2 | if 'i' is an odd number then subtract 1
+	andl	$1, %edx			# Didn't understand the use of this instruction (%edx is unused!)
+	je	.L11				# Jump to .L11
 .L3:
-	movsd	(%rsi,%rax,8), %xmm1	# %xmm1 = b[i]
-	mulsd	(%rdi,%rax,8), %xmm1	# %xmm1 *= a[i]
+	movsd	(%rsi,%rax,8), %xmm1		# %xmm1 = b[i]
+	mulsd	(%rdi,%rax,8), %xmm1		# %xmm1 *= a[i]
 	addsd	%xmm1, %xmm0			# d += %xmm1
-	ret								# Return (exit)
+	ret					# Return (exit)
 	.p2align 4,,10
 	.p2align 3
 .L11:
-	ret								# Return (exit)
+	ret					# Return (exit)
 	.p2align 4,,10
 	.p2align 3
 .L7:
-	pxor	%xmm0, %xmm0            # Initialize the variable double d to 0 by performing XOR operation.
-	ret                             # Return (exit)
+	pxor	%xmm0, %xmm0			# Initialize the variable double d to 0 by performing XOR operation.
+	ret					# Return (exit)
 .L8:
-	xorl	%eax, %eax              # Initialize the variable unsigned long long i to 0
-	pxor	%xmm0, %xmm0            # Initialize the varaible double d to 0
-	jmp	.L3                         # Jump to .L3 (FOR LOOP)
+	xorl	%eax, %eax			# Initialize the variable unsigned long long i to 0
+	pxor	%xmm0, %xmm0			# Initialize the varaible double d to 0
+	jmp	.L3				# Jump to .L3 (FOR LOOP)
 	.cfi_endproc
 ```
 Assembly code compiled using the option '*-Ofast*':
@@ -145,13 +145,13 @@ Assembly code compiled using the option '*-Ofast*':
 	andl	$1, %edx
 	addpd	%xmm0, %xmm1			# vector addition
 	je	.L1
-.L3:								# Executed only if n equals to 1 => (0 + a[1] * b[1])
-	movsd	(%rsi,%rax,8), %xmm0	# %xmm0 = b[i]
-	mulsd	(%rdi,%rax,8), %xmm0	# %xmm0 *= a[i]
+.L3:						# Executed only if n equals to 1 => (0 + a[1] * b[1])
+	movsd	(%rsi,%rax,8), %xmm0		# %xmm0 = b[i]
+	mulsd	(%rdi,%rax,8), %xmm0		# %xmm0 *= a[i]
 	addsd	%xmm0, %xmm1			# %xmm1 += %xmm0
 .L1:
 	movapd	%xmm1, %xmm0			# move %xmm1 to %xmm0 (return value)
-	ret								# return (exit)
+	ret					# return (exit)
 # ...
 ```
 ### Observations:
@@ -201,23 +201,23 @@ So we have got a 100% vector assembly code with the exception of switching to sc
 ## Code that has been unrolled twice
 ### The C code of the function:
 ```c
-	double dotprod(double *a, double *b, unsigned long long n)
+double dotprod(double *a, double *b, unsigned long long n)
+{
+	double d = 0.0;
+	double d_2 = 0.0;
+	unsigned long long i = 0;
+	if (n&1) 
 	{
-		double d = 0.0;
-		double d_2 = 0.0;
-		unsigned long long i = 0;
-		if (n&1) 
-		{
-			d += a[i] * b[i];
-			i++;
-		}
-		for (; i < n; i+=2) {
-			d += a[i] * b[i];
-			d_2 += a[i+1] * b[i+1];
-		}
-
-		return d + d_2;
+		d += a[i] * b[i];
+		i++;
 	}
+	for (; i < n; i+=2) {
+		d += a[i] * b[i];
+		d_2 += a[i+1] * b[i+1];
+	}
+
+	return d + d_2;
+}
 ```
 ### Comments about the assembly code generated with 'gcc':
 - *-O1*  and *-O2*:
@@ -225,18 +225,18 @@ So we have got a 100% vector assembly code with the exception of switching to sc
 
 	```asm
 	.L4:
-		movsd	(%rdi,%rax,8), %xmm1	# %xmm1 = a[i]
-		mulsd	(%rsi,%rax,8), %xmm1	# %xmm1 *= b[i]
+		movsd	(%rdi,%rax,8), %xmm1		# %xmm1 = a[i]
+		mulsd	(%rsi,%rax,8), %xmm1		# %xmm1 *= b[i]
 		addsd	%xmm1, %xmm0			# ret += %xmm1
-		movsd	8(%rdi,%rax,8), %xmm1	# %xmm1 = a[i+1] *advanced by 8 -> the next bloc*
-		mulsd	8(%rsi,%rax,8), %xmm1	# %xmm1 *= b[i+1] *same for the %rsi regsiter*
+		movsd	8(%rdi,%rax,8), %xmm1		# %xmm1 = a[i+1] *advanced by 8 -> the next bloc*
+		mulsd	8(%rsi,%rax,8), %xmm1		# %xmm1 *= b[i+1] *same for the %rsi regsiter*
 		addsd	%xmm1, %xmm2			# %xmm2 += %xmm1
-		addq	$2, %rax				# i += 2
-		cmpq	%rax, %rdx				# compare n to i
-		ja	.L4							# if n>i, loop back
+		addq	$2, %rax			# i += 2
+		cmpq	%rax, %rdx			# compare n to i
+		ja	.L4				# if n>i, loop back
 	.L3:
 		addsd	%xmm2, %xmm0			# ret += %xmm2
-		ret								# return ret (exit)
+		ret					# return ret (exit)
 	```
 
 	```asm
@@ -249,10 +249,10 @@ So we have got a 100% vector assembly code with the exception of switching to sc
 		addq	$2, %rax
 		addsd	%xmm1, %xmm0
 	.L8:
-		cmpq	%rax, %rdx		# compare n to i
-		ja	.L4					# if n>i, goto back to .L4 LOOP
-		addsd	%xmm2, %xmm0	# ret += %xmm2
-		ret						# return ret
+		cmpq	%rax, %rdx			# compare n to i
+		ja	.L4				# if n>i, goto back to .L4 LOOP
+		addsd	%xmm2, %xmm0			# ret += %xmm2
+		ret					# return ret
 	```
 	*-O1* and *-O2* are the same. Both use scalar double precision operations for the additions, multiplications and movements.
 
@@ -271,36 +271,36 @@ So we have got a 100% vector assembly code with the exception of switching to sc
 ### Summary for the 'Unroll Twice' code (gcc vs clang)
 >|            | SIMD Instructions (*gcc*)| SIMD Instructions (*clang*)|
 >|------------|------------------------| -----------------------|
->| *-O1*      | Scalar           	   | Scalar           	 	|
->| *-O2*      | Scalar            	   | Scalar            	 	|
->| *-O3*      | Vector Multiplication  | Vector 				|
->|			  | + Scalar Addition	   | 						|
->| *-Ofast*   | Vector 				   | Vector 			 	|
->| *Kamikaze* | Vector     	     	   | Vector     	     	|
+>| *-O1*      	| Scalar           	| Scalar	|
+>| *-O2*      	| Scalar            	| Scalar	|
+>| *-O3*      	| Vector Multiplication	| Vector	|
+>|		| + Scalar Addition	|		|
+>| *-Ofast*   	| Vector		| Vector 	|
+>| *Kamikaze* 	| Vector		| Vector     	|
 ---
 ## Code that has been unrolled 4 times
 ### The C code of the function:
 ```c
-	double dotprod(double *a, double *b, unsigned long long n)
+double dotprod(double *a, double *b, unsigned long long n)
+{
+	double d = 0.0;
+	double d_2 = 0.0;
+	double d_3 = 0.0;
+	double d_4 = 0.0;
+	unsigned long long i = 0;
+	if (n&1) 
 	{
-		double d = 0.0;
-		double d_2 = 0.0;
-		double d_3 = 0.0;
-		double d_4 = 0.0;
-		unsigned long long i = 0;
-		if (n&1) 
-		{
-			d += a[i] * b[i];
-			i++;
-		}
-		for (; i < n; i+=4) {
-			d += a[i] * b[i];
-			d_2 += a[i+1] * b[i+1];
-			d_3 += a[i+2] * b[i+2];
-			d_4 += a[i+3] * b[i+3];
-		}
-		return d + d_2 + d_3 + d_4;
+		d += a[i] * b[i];
+		i++;
 	}
+	for (; i < n; i+=4) {
+		d += a[i] * b[i];
+		d_2 += a[i+1] * b[i+1];
+		d_3 += a[i+2] * b[i+2];
+		d_4 += a[i+3] * b[i+3];
+	}
+	return d + d_2 + d_3 + d_4;
+}
 ```
 ### Comments about the assembly code generated with 'gcc':
 - *-O1*: The use of only __scalar__ double precision SIMD x86 instructions.
@@ -319,9 +319,9 @@ So we have got a 100% vector assembly code with the exception of switching to sc
 ### Summary for the 'Unroll x4' code (gcc vs clang)
 >|            | SIMD Instructions (*gcc*)| SIMD Instructions (*clang*)|
 >|------------|--------------------------|------------------------|
->| *-O1*      | Scalar           	   	 | Scalar           	  |
->| *-O2*      | Scalar            	   	 | Vector            	  |
->| *-O3*      | Vector + Scalar  	   	 | Vector 				  |
->| *-Ofast*   | Scalar 				   	 | Vector 			 	  |
->| *Kamikaze* | Scalar     	     	   	 | Vector     	     	  |
+>| *-O1*      | Scalar			| Scalar	|
+>| *-O2*      | Scalar			| Vector	|
+>| *-O3*      | Vector + Scalar		| Vector	|
+>| *-Ofast*   | Scalar			| Vector	|
+>| *Kamikaze* | Scalar			| Vector	|
 
