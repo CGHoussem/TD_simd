@@ -20,28 +20,28 @@ dotprod:
 .LFB0:
 	.cfi_startproc
 	endbr64
-	testq	%rdx, %rdx              # Test N
-	je	.L4                         # If equals to 0 goto .L4
-	movl	$0, %eax                # Copie 0 into a 32 bits register
-	pxor	%xmm1, %xmm1            # Initializes the double 'd' to 0
-.L3:                            # FOR LOOP
+	testq	%rdx, %rdx		# Test N
+	je	.L4			# If equals to 0 goto .L4
+	movl	$0, %eax		# Copie 0 into a 32 bits register
+	pxor	%xmm1, %xmm1		# Initializes the double 'd' to 0
+.L3:					# FOR LOOP
     # movsd: SSE2 Instruction
-	movsd	(%rdi,%rax,8), %xmm0    # Move 8*(%rax) bits from %rdi to %xmm0
-                                    # %xmm0 = a[i]          \w { i = (%rax)/8 }
-	mulsd	(%rsi,%rax,8), %xmm0    # Multiply 8*(%rax) bits from %rsi with %xmm0
-                                    # %xmm0 = b[i] * %xmm0  \w { i = (%rax)/8 }
-	addsd	%xmm0, %xmm1            # Adds %xmm0 to %xmm1
-                                    # %xmm1 = %xmm1 + %xmm0
-                                    # d = d + a[i] * b[i]   \w { i = (%rax)/8 }
-	addq	$1, %rax                # Adds 1 to %rax (i = i + 1)
-	cmpq	%rax, %rdx              # Compare if i equals n
-	jne	.L3                         # Jump if not equal to .L3 (FOR LOOP)
+	movsd	(%rdi,%rax,8), %xmm0	# Move 8*(%rax) bits from %rdi to %xmm0
+					# %xmm0 = a[i]          \w { i = (%rax)/8 }
+	mulsd	(%rsi,%rax,8), %xmm0	# Multiply 8*(%rax) bits from %rsi with %xmm0
+					# %xmm0 = b[i] * %xmm0  \w { i = (%rax)/8 }
+	addsd	%xmm0, %xmm1		# Adds %xmm0 to %xmm1
+					# %xmm1 = %xmm1 + %xmm0
+					# d = d + a[i] * b[i]   \w { i = (%rax)/8 }
+	addq	$1, %rax		# Adds 1 to %rax (i = i + 1)
+	cmpq	%rax, %rdx		# Compare if i equals n
+	jne	.L3			# Jump if not equal to .L3 (FOR LOOP)
 .L1:
-	movapd	%xmm1, %xmm0            # Move 32 bit(single precision) doubles to %xmm0
-	ret                             # Return (exit)
+	movapd	%xmm1, %xmm0		# Move 32 bit(single precision) doubles to %xmm0
+	ret				# Return (exit)
 .L4:
-	pxor	%xmm1, %xmm1            # Initializes the double 'd' to 0
-	jmp	.L1                         # Jumps to .L1
+	pxor	%xmm1, %xmm1		# Initializes the double 'd' to 0
+	jmp	.L1			# Jumps to .L1
 	.cfi_endproc
 ```
 Assembly code compiled using the option '*-O2*':
